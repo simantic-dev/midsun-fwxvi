@@ -1,0 +1,6 @@
+brake: Analog.ADCChannelSource @ adc1 10
+    defaultValueMicroVolts: 0
+accel: Analog.ADCChannelSource @ adc1 8
+    defaultValueMicroVolts: 1650000
+ws22: CAN.ScriptedCanNode @ sysbus 0x60100000
+    file: "sim/dashboard/ws22_motor_controller.py"

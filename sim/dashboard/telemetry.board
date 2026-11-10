@@ -1,0 +1,2 @@
+xbee: CAN.ScriptedCanNode @ sysbus 0x60100000
+    file: "sim/dashboard/xbee_bridge.py"
