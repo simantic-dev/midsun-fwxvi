@@ -1,0 +1,4 @@
+adbms: SPI.ScriptedSpiSlave @ spi2
+    file: "sim/dashboard/adbms1818.py"
+gpioPortB:
+    12 -> adbms@0

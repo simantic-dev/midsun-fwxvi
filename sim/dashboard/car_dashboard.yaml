@@ -1,17 +1,17 @@
-# Three boards on one CAN bus, with paths relative to the repository root (run from there).
+# Three boards on one CAN bus. Paths are relative to this file.
 machines:
   bms:
     mcu: STM32L496RG
-    overlay: sim/dashboard/bms.board
-    elf: build/arm/bin/projects/rear_controller.elf
+    overlay: bms.board
+    elf: ../../build/arm/bin/projects/rear_controller.elf
   front:
     mcu: STM32L433CC
-    overlay: sim/dashboard/front.board
-    elf: build/arm/bin/projects/front_controller.elf
+    overlay: front.board
+    elf: ../../build/arm/bin/projects/front_controller.elf
   telemetry:
     mcu: STM32L433CC
-    overlay: sim/dashboard/telemetry.board
-    elf: build/arm/bin/projects/telemetry.elf
+    overlay: telemetry.board
+    elf: ../../build/arm/bin/projects/telemetry.elf
 media:
   - type: can
     connect: [bms.can1, bms.steering, front.can1, front.ws22, telemetry.can1, telemetry.xbee]

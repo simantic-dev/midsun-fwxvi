@@ -21,8 +21,8 @@ Firmware readings are 50 mV above the simulated cells because `cell_sense.c` add
 `ADBMS1818_ADC_DC_OFFSET_10UV` to each reading. That offset is the firmware's own
 calibration.
 
-The STM32L496 needs a pyrite build with the L4x6 die (branch `feature/stm32l496`); a released
-`sim` refuses the part as "not modeled yet".
+The STM32L496 needs a pyrite `sim` newer than 0.9.1 (0.9.1 refuses it over an unread `can2`
+attribute).
 
 ## Three boards on one CAN bus
 

@@ -1,0 +1,21 @@
+# All four controllers on one CAN bus, the steering board included (STM32L4P5, LTDC display). Paths relative to this file.
+machines:
+  bms:
+    mcu: STM32L496RG
+    overlay: bms-no-steering-peer.board
+    elf: ../../build/arm/bin/projects/rear_controller.elf
+  front:
+    mcu: STM32L433CC
+    overlay: front.board
+    elf: ../../build/arm/bin/projects/front_controller.elf
+  telemetry:
+    mcu: STM32L433CC
+    overlay: telemetry.board
+    elf: ../../build/arm/bin/projects/telemetry.elf
+  steering:
+    mcu: STM32L4P5VE
+    elf: ../../build/arm/bin/projects/steering.elf
+media:
+  - type: can
+    connect: [bms.can1, front.can1, front.ws22, telemetry.can1, telemetry.xbee, steering.can1]
+timeout: 600
