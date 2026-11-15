@@ -68,7 +68,6 @@ speed and temperature.
 ![Steering display](screenshots/09-steering-display.png)
 
 ```
-git apply sim/dashboard/steering-persistence-off.patch   # see below
 scons --platform=arm --project=steering                   # its own STM32L4P5 preset
 sim/dashboard/run.sh 600        # uses the `sim` on PATH; SIM=... for another, DASH=... adds the telemetry dashboard
 ```
@@ -82,12 +81,12 @@ the firmware's own PLLSAI2 setup (HSI16 / 4 x 72 / 8 / 4 = 9 MHz), so frames com
 real rate. The real steering board replaces `steering_peer.py` here, so cell balancing now waits for
 its balancing button instead of being on from the start.
 
-**Why the patch.** `libraries/ms-common/inc/flash.h` defines the L433 flash layout for every chip
+**Why persistence is off on this branch.** `libraries/ms-common/inc/flash.h` defines the L433 flash layout for every chip
 (2 KB pages, 128 pages). The steering image is 392 KB, so `persist_init`'s "last page" (127, at
 0x0803F800) is inside the firmware's own code. It reads code, never finds a valid marker, and erases
 page 127, which on the L4P5 (4 KB pages, 64 per bank on a 512 KB part) is not that address. In the
-sim it retries for ever and the display never comes up. The patch sets `INCLUDE_PERSISTENCE 0` in
-`display.c` so the rest of the firmware can run; the proper fix is a per-chip page size and page
+sim it retries for ever and the display never comes up. This branch sets `INCLUDE_PERSISTENCE 0` in
+`projects/steering/src/display.c` so the rest of the firmware can run; the proper fix is a per-chip page size and page
 count in `flash.h`, with the persistence page in bank 2.
 
 Needs a pyrite `sim` newer than 0.9.1: 0.9.1 refuses the STM32L4P5, and also the STM32L496 (an
