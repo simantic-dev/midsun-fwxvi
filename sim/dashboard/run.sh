@@ -1,13 +1,14 @@
 #!/bin/bash
 # The simulated car, with the steering display in a browser and Midnight Sun's telemetry dashboard.
 # Run from the repository root:
-#   SIM=/path/to/pyrite/sim [DASH=/path/to/fwxvi_telemetry_client] sim/dashboard/run.sh [virtual-seconds]
+#   [SIM=/path/to/pyrite/sim] [DASH=/path/to/fwxvi_telemetry_client] sim/dashboard/run.sh [virtual-seconds]
 # All four controllers run (car4.yaml); CAR=3 runs the three-board car with the steering stand-in
 # (car_dashboard.yaml) instead. The steering display is at http://localhost:8765/.
 # DASH, if set, is a checkout of uw-midsun/fwxvi_telemetry_client with telemetry_client-pty.patch
 # applied and built (cargo build --release); close its window to stop the car. Without DASH, Ctrl-C stops it.
 set -u
-: "${SIM:?set SIM to a pyrite sim binary}"
+SIM=${SIM:-sim}   # the `sim` on PATH unless SIM names another
+command -v "$SIM" >/dev/null || { echo "no pyrite sim: put 'sim' on PATH or set SIM"; exit 1; }
 SECS=${1:-600}
 PTY_FILE=sim/dashboard/xbee_pty.txt
 FRAMES=sim/dashboard/steering-frames

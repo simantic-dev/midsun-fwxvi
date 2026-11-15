@@ -70,7 +70,7 @@ speed and temperature.
 ```
 git apply sim/dashboard/steering-persistence-off.patch   # see below
 scons --platform=arm --project=steering                   # its own STM32L4P5 preset
-SIM=/path/to/pyrite/sim sim/dashboard/run.sh 600              # add DASH=... for the telemetry dashboard too
+sim/dashboard/run.sh 600        # uses the `sim` on PATH; SIM=... for another, DASH=... adds the telemetry dashboard
 ```
 
 `run.sh` runs all four controllers (`CAR=3` for the three-board car) and serves the steering display at
