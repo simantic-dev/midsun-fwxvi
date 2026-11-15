@@ -25,6 +25,13 @@ All of them follow one drive scenario (`sim/dashboard/drive.csv`): park, acceler
 cruise, regen-brake, stop, every 100 s. Speed, pack and motor current, pack and cell voltage, and
 state of charge therefore agree on the steering display.
 
+**Replay your own drives:** `sim/dashboard/sd_to_drive.py` turns a log from the telemetry board's SD
+card into that scenario, so the firmware re-drives a real run on the simulated boards:
+
+```
+python3 sim/dashboard/sd_to_drive.py /Volumes/SDCARD > sim/dashboard/drive.csv
+```
+
 **Run it** (needs `scons`, the Arm GNU toolchain, and Simantic's `sim` on PATH):
 
 ```

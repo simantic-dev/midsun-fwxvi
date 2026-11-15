@@ -36,8 +36,27 @@ The battery is the rear controller's own: 36s9p of 4.5 Ah cells (`rear_controlle
 15 mOhm a cell (`state_of_charge.c`) and its SOC to OCV table (`state_of_charge_lut.h`). A cell reads
 OCV(SOC) plus the pack current over 9 times 15 mOhm, with the state of charge counted from 80%.
 
-The scenario is a replay: it does not react to the firmware's pedals or drive commands. A drive log
-from the car, with the same columns, can replace `drive.csv`.
+The scenario is a replay: it does not react to the firmware's pedals or drive commands.
+
+### Replay a drive from the car's SD card
+
+`sd_to_drive.py` turns a log the telemetry board wrote (`logs_<n>.log`, its own format from
+`projects/telemetry/src/telemetry_log.c`) into a `drive.csv`, so the simulated boards re-drive a real
+run:
+
+```
+python3 sim/dashboard/sd_to_drive.py /Volumes/SDCARD > sim/dashboard/drive.csv   # or a logs_<n>.log file
+sim/dashboard/run.sh 600
+```
+
+It takes speed and motor current from the WS22's frames (0x083, 0x082) and the pack current from the
+rear controller's `battery_stats_B`, decoded with the scaling in `can/boards/rear_controller.yaml`.
+From a folder it takes the largest log. Rows are 0.5 s apart (`--step`), and the replayed pack
+current equals the logged one. The state of charge still starts at `drive.py`'s `SOC_START`.
+
+The simulated telemetry board writes the same logs to its simulated card, so a simulated run's log
+converts back to its own drive. That is how the converter was checked: speed, motor current and the
+4 A solar current came back from a log the simulated car wrote.
 
 Pack current is in the sign `current_sense.c` uses, where discharge is negative (its overcurrent
 limits are -80 A discharge and +80 A charge). `rear_controller.h` and the steering display's solar
