@@ -17,5 +17,7 @@ machines:
     elf: ../../build/arm/bin/projects/steering.elf
 media:
   - type: can
-    connect: [bms.can1, front.can1, front.ws22, telemetry.can1, telemetry.xbee, steering.can1]
+    connect: [bms.can1, front.can1, front.ws22, telemetry.can1, steering.can1]
+  - type: uart
+    connect: [telemetry.usart2, telemetry.xbee]
 timeout: 600

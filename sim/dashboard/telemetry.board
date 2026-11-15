@@ -1,5 +1,7 @@
-xbee: CAN.ScriptedCanNode @ sysbus 0x60100000
-    file: "sim/dashboard/xbee_bridge.py"
+// XBee radio on UART2 (telemetry_hw_defs.h, 230400 baud), joined to usart2 by a `uart` medium in the scenario.
+xbee: UART.ScriptedUartPeer @ sysbus 0x60100000
+    file: "sim/dashboard/xbee.py"
+    baudRate: 230400
 // SD card on SPI2 in SPI mode (sd_card_interface.c; CS PB12 is a plain GPIO the model does not need). telemetry_init
 // stops when it cannot mount it, and the board then never runs CAN. run.sh writes an empty 16 MB FAT16 volume to
 // sd.img before each run (make_sd_image.py); the card writes its log blocks back there.

@@ -18,7 +18,7 @@ dashboard ([fwxvi_telemetry_client](https://github.com/uw-midsun/fwxvi_telemetry
 | `adbms1818.py` | 2 daisy-chained ADBMS1818 AFEs on the BMS's SPI2, 36 cells following the drive scenario; cell 3 of AFE 1 sits 50 mV and cell 10 of AFE 2 80 mV above the rest, so the BMS balances them |
 | `ads122c14.py` | the BMS's pack-current ADC on I2C3 at 0x40, reading the scenario's shunt current |
 | `ws22_motor_controller.py` | WaveSculptor 22 motor controller; status frames every 100 ms with the scenario's speed and current, its bus at pack voltage |
-| `xbee_bridge.py` | stand-in for the telemetry board's XBee forwarding (see below) |
+| `xbee.py` | the XBee radio on telemetry's UART2, in transparent mode: the firmware's own datagrams go to a pty the dashboard opens |
 | `steering_peer.py` | scripted steering board, used only by the three-board car (`car_dashboard.yaml`) |
 | board files | relay sense lines wired to their enables, the AUX input at 12 V and 0.8 A, telemetry's SD card (an empty FAT16 volume that `make_sd_image.py` writes before each run) |
 
@@ -77,11 +77,13 @@ reading of 0).
 
 ## Stand-ins and known gaps
 
-- **XBee:** `projects/telemetry/src/main.c:132` has `xb_transmit_init` commented out, so the stock
-  telemetry image sends nothing over XBee. With that line restored it still sent no bytes in a 20 s
-  run, which is not explained yet. `xbee_bridge.py` does what `xb_transmit.c` does: it forwards CAN
-  frames in the `datagram.h` framing (0xAA, ID big-endian, DLC, data, 0xBB) and re-encodes WS22
-  frames into IDs 2039 to 2043 once a second.
+- **XBee:** upstream has `xb_transmit_init` commented out at `projects/telemetry/src/main.c:132`, so
+  the stock telemetry image sends nothing over the radio. This fork turns it back on. It used to look
+  as if it still sent nothing; that was the missing SD card, since `telemetry_init` stopped before
+  reaching it. Now the firmware's own `xb_transmit.c` sends its datagrams on UART2, and `xbee.py`
+  passes them to the dashboard. It sends about 2 datagrams a second (28 in a 12 s run), against 137
+  signals on the bus; why so few is not looked into (the CAN filter, `s_prepare_filter`, is also
+  commented out).
 - **Drive command is 0:** with no pedal calibration in flash, `brake_pedal.c` computes 0/0 and the
   filter holds NaN (`front_controller.c:79` ignores the `pedal_calib_read` return value).
 - **Motor temperature reads -25.5 C:** the dashboard's `postprocess.yaml` negates that field.

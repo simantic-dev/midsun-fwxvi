@@ -129,7 +129,7 @@ void pre_loop_init() {
   status = telemetry_init(&telemetry_storage, &telemetry_config, &bmi323_storage, &can_storage);
   if (status != STATUS_CODE_OK) goto fail;
   // s_prepare_filter();
-  // xb_transmit_init(&telemetry_storage, &telemetry_config);
+  xb_transmit_init(&telemetry_storage, &telemetry_config);
   status = tasks_init_task(telemetry_sd_logger, TASK_PRIORITY(1), NULL);
   if (status != STATUS_CODE_OK) goto fail;
   s_telemetry_ready = true;

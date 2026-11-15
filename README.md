@@ -1,7 +1,7 @@
 ## This fork: the whole car in a simulator
 
 This is Simantic's fork of Midnight Sun's firmware. It runs the car's real
-firmware, unmodified apart from one line, on simulated hardware: no boards, no bench.
+firmware, unmodified apart from two lines, on simulated hardware: no boards, no bench.
 
 ![Steering display, simulated](sim/dashboard/screenshots/10-steering-drive.png)
 
@@ -21,7 +21,8 @@ The parts around them are Python models in `sim/dashboard/`:
 - **Cells:** the ADBMS1818 cell monitor (`adbms1818.py`).
 - **Pack current:** the ADS122C14 current-sense ADC (`ads122c14.py`).
 - **Motor controller:** the WS22 (`ws22_motor_controller.py`).
-- **Radio:** the XBee link (`xbee_bridge.py`), which can feed Midnight Sun's own telemetry dashboard.
+- **Radio:** the XBee on the telemetry board's UART2 (`xbee.py`). The firmware's own `xb_transmit.c`
+  sends through it to Midnight Sun's telemetry dashboard.
 - **On the boards:** the relay sense lines, the AUX power input, and telemetry's SD card.
 
 All of them follow one drive scenario (`sim/dashboard/drive.csv`): park, accelerate to 60 km/h,
@@ -43,9 +44,12 @@ for p in rear_controller front_controller telemetry steering; do scons --platfor
 sim/dashboard/run.sh 600      # opens the steering display at http://localhost:8765/
 ```
 
-The one change to the firmware: persistence is off on the steering board
-(`INCLUDE_PERSISTENCE 0` in `projects/steering/src/display.c`). `libraries/ms-common/inc/flash.h`
-gives every chip the STM32L433's flash layout, which doesn't fit the L4P5.
+The two changes to the firmware:
+- **Persistence is off on the steering board** (`INCLUDE_PERSISTENCE 0` in
+  `projects/steering/src/display.c`). `libraries/ms-common/inc/flash.h` gives every chip the
+  STM32L433's flash layout, which doesn't fit the L4P5.
+- **The radio is on** (`xb_transmit_init` in `projects/telemetry/src/main.c`), which upstream has
+  commented out.
 [`sim/dashboard/README.md`](sim/dashboard/README.md) has the details, the three-board variant and
 how to attach the telemetry dashboard.
 
