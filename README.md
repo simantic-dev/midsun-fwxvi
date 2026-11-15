@@ -3,7 +3,10 @@
 This is Simantic's fork of Midnight Sun's firmware. It runs the car's real
 firmware, unmodified apart from one line, on simulated hardware: no boards, no bench.
 
-![Steering display, simulated](sim/dashboard/screenshots/09-steering-display.png)
+![Steering display, simulated](sim/dashboard/screenshots/10-steering-drive.png)
+
+The steering board's own display, 24 s into the drive scenario: the car accelerating through 52 km/h,
+the pack sagging to 141 V at 19.5 A of discharge, cells at 3.920 V and 4.003 V.
 
 **What runs:** four controllers on one simulated CAN bus, each on its own simulated STM32.
 
