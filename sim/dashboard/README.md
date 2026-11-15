@@ -14,15 +14,41 @@ dashboard ([fwxvi_telemetry_client](https://github.com/uw-midsun/fwxvi_telemetry
 | rear_controller (BMS) | real firmware, simulated STM32L496RG |
 | front_controller | real firmware, simulated STM32L433CC |
 | telemetry | real firmware, simulated STM32L433CC |
-| `adbms1818.py` | 2 daisy-chained ADBMS1818 AFEs on SPI2, 36 cells; cell 3 of AFE 1 at 3.95 V and cell 10 of AFE 2 at 3.98 V, the rest at 3.90 V |
-| `steering_peer.py` | stand-in for the steering board (STM32L4P5, not simulated yet); sends `steering` with balancing enabled |
-| `ws22_motor_controller.py` | WaveSculptor 22 motor controller; status frames every 100 ms, 1200 rpm |
+| steering | real firmware, simulated STM32L4P5VE with its LTDC display (`car4.yaml`) |
+| `adbms1818.py` | 2 daisy-chained ADBMS1818 AFEs on the BMS's SPI2, 36 cells following the drive scenario; cell 3 of AFE 1 sits 50 mV and cell 10 of AFE 2 80 mV above the rest, so the BMS balances them |
+| `ads122c14.py` | the BMS's pack-current ADC on I2C3 at 0x40, reading the scenario's shunt current |
+| `ws22_motor_controller.py` | WaveSculptor 22 motor controller; status frames every 100 ms with the scenario's speed and current, its bus at pack voltage |
 | `xbee_bridge.py` | stand-in for the telemetry board's XBee forwarding (see below) |
+| `steering_peer.py` | scripted steering board, used only by the three-board car (`car_dashboard.yaml`) |
+| board files | relay sense lines wired to their enables, the AUX input at 12 V and 0.8 A, telemetry's SD card (an empty FAT16 volume that `make_sd_image.py` writes before each run) |
 
-All three boards and the peers share one CAN bus. The dashboard decodes every datagram with the
+All boards and the peers share one CAN bus. The dashboard decodes every datagram with the
 fwxvi CAN definitions: 137 signals, none unmatched.
 
+## The drive scenario
+
+Every peer reads one table, `drive.csv`, at the same virtual time (`drive.py`), so speed, currents,
+pack voltage, cell voltages and state of charge agree. The car parks for 10 s, accelerates to
+60 km/h, cruises, regen-brakes to a stop and parks again, every 100 s. Solar brings in 4 A
+throughout and the low-voltage loads take 0.8 A.
+
+The battery is the rear controller's own: 36s9p of 4.5 Ah cells (`rear_controller_config.h`),
+15 mOhm a cell (`state_of_charge.c`) and its SOC to OCV table (`state_of_charge_lut.h`). A cell reads
+OCV(SOC) plus the pack current over 9 times 15 mOhm, with the state of charge counted from 80%.
+
+The scenario is a replay: it does not react to the firmware's pedals or drive commands. A drive log
+from the car, with the same columns, can replace `drive.csv`.
+
+Pack current is in the sign `current_sense.c` uses, where discharge is negative (its overcurrent
+limits are -80 A discharge and +80 A charge). `rear_controller.h` and the steering display's solar
+figure (motor minus pack) assume the opposite sign, so the display's "S:" value is wrong one way or
+the other. Which sign the real shunt gives is a question for the car.
+
 ## What the screenshots show
+
+These were taken before the drive scenario and the current sensor peer existed, which is why the
+car shows a fixed speed and a pack current of -201 A (the CAN encoding's "below range" value for a
+reading of 0).
 
 - **Dashboard:** WS22 at 1200 rpm and 124.4 km/h, pack at 142.24 V and -201 A, 75.46 % state of charge.
 - **Cells:** the BMS firmware's readings of the simulated pack. Cell 28 (AFE 2 cell 10) is the high

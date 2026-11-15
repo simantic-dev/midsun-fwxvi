@@ -24,6 +24,7 @@ for elf in $ELFS; do
 done
 
 rm -rf "$PTY_FILE" "$FRAMES"
+python3 sim/dashboard/make_sd_image.py sim/dashboard/sd.img   # telemetry's SD card: an empty FAT16 volume, fresh each run
 "$SIM" run --scenario "$SCENARIO" --timeout "$SECS" --display-dir "$FRAMES" \
   > sim/dashboard/sim.log 2> sim/dashboard/peers.log &
 SIM_PID=$!

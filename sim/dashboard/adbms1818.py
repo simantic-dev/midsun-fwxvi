@@ -60,6 +60,8 @@ PEC_SIZE = 2
 CELLS_PER_DEVICE = 18
 GROUP_BYTES = 6
 PACKET_BYTES = GROUP_BYTES + PEC_SIZE
+DRIVE = "sim/dashboard/drive.py"
+exec(compile(open(DRIVE).read(), DRIVE, "exec"))
 LSB_V = 100e-6                 # 100 uV per cell-voltage LSB
 
 # Command words, 11 bits (the driver's ADBMS1818_*_RESERVED values).
@@ -123,6 +125,7 @@ class Slave:
         self.summary_every = int(cfg.get("summary_every", 10))
         self.dten_pin = int(cfg.get("dten_pin", 1))   # DTEN pin level; the boards tie it high
         cell_v = float(cfg.get("cell_v", 3.90))
+        self.nominal_v = cell_v
         self.volts = [[cell_v] * CELLS_PER_DEVICE for _ in range(self.num_devices)]
         overrides = {"0:3": 3.95, "1:10": 3.98}
         overrides.update(cfg.get("cell_overrides", {}))
@@ -237,11 +240,14 @@ class Slave:
 
     def _read_voltages(self, group):
         self._advance()
+        # Every cell follows the drive scenario's cell voltage; self.volts keeps each cell's own offset (the
+        # overrides above, less what balancing drained).
+        shift = cell_v(self.ctx.now_us / 1e6) - self.nominal_v
         out = []
         for dev in range(self.num_devices):
             group_bytes = []
             for cell in range(group * 3, group * 3 + 3):
-                raw = max(0, min(0xFFFF, round(self.volts[dev][cell] / LSB_V)))
+                raw = max(0, min(0xFFFF, round((self.volts[dev][cell] + shift) / LSB_V)))
                 group_bytes += [raw & 0xFF, raw >> 8]
             out += _packet(group_bytes)
         return out

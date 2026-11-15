@@ -1,4 +1,28 @@
+// Rear controller (BMS, STM32L496) in the four-board car: its off-board parts.
+// Cell monitor: two ADBMS1818s on SPI2, chip select PB12.
 adbms: SPI.ScriptedSpiSlave @ spi2
     file: "sim/dashboard/adbms1818.py"
 gpioPortB:
     12 -> adbms@0
+// Pack current: ADS122C14 on I2C3 at 0x40 (rear_controller_hw_defs.h), reading the drive scenario's shunt current.
+ads122: I2C.ScriptedI2cSlave @ i2c3 0x40
+    file: "sim/dashboard/ads122c14.py"
+// Relays: each relay's auxiliary contact reports its coil, so each enable output is wired to its sense input
+// (relays.c: POS enable PA6 / sense PA5, NEG PA4 / PA3, SOLAR PA8 / PA9, MOTOR PC4 / PA7).
+gpioPortA:
+    6 -> gpioPortA@5
+    4 -> gpioPortA@3
+    8 -> gpioPortA@9
+gpioPortC:
+    4 -> gpioPortA@7
+// Power inputs (power_path_manager.c): AUX present at 12 V and 0.8 A (drive.py AUX_A), PCS absent.
+// V(mV) = pin_mV * 13300 / 3300; I(mA) = (pin_mV - 1650) * 1000 / 132. AUX: PA1 = ADC1_IN6, PC2 = ADC1_IN3;
+// PCS: PA2 = ADC1_IN7, PC3 = ADC1_IN4. The VALID inputs (PC6-PC9, active low) float low: both report valid.
+aux_v: Analog.ADCChannelSource @ adc1 6
+    defaultValueMicroVolts: 2977000
+aux_i: Analog.ADCChannelSource @ adc1 3
+    defaultValueMicroVolts: 1755600
+pcs_v: Analog.ADCChannelSource @ adc1 7
+    defaultValueMicroVolts: 0
+pcs_i: Analog.ADCChannelSource @ adc1 4
+    defaultValueMicroVolts: 1650000

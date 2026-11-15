@@ -1,6 +1,24 @@
+// Rear controller (BMS, STM32L496) in the three-board car (car_dashboard.yaml): the same parts as the four-board
+// car's bms-no-steering-peer.board, plus a scripted steering board on CAN in place of the real one.
 adbms: SPI.ScriptedSpiSlave @ spi2
     file: "sim/dashboard/adbms1818.py"
 gpioPortB:
     12 -> adbms@0
+ads122: I2C.ScriptedI2cSlave @ i2c3 0x40
+    file: "sim/dashboard/ads122c14.py"
+gpioPortA:
+    6 -> gpioPortA@5
+    4 -> gpioPortA@3
+    8 -> gpioPortA@9
+gpioPortC:
+    4 -> gpioPortA@7
+aux_v: Analog.ADCChannelSource @ adc1 6
+    defaultValueMicroVolts: 2977000
+aux_i: Analog.ADCChannelSource @ adc1 3
+    defaultValueMicroVolts: 1755600
+pcs_v: Analog.ADCChannelSource @ adc1 7
+    defaultValueMicroVolts: 0
+pcs_i: Analog.ADCChannelSource @ adc1 4
+    defaultValueMicroVolts: 1650000
 steering: CAN.ScriptedCanNode @ sysbus 0x60100000
     file: "sim/dashboard/steering_peer.py"

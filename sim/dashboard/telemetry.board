@@ -1,2 +1,9 @@
 xbee: CAN.ScriptedCanNode @ sysbus 0x60100000
     file: "sim/dashboard/xbee_bridge.py"
+// SD card on SPI2 in SPI mode (sd_card_interface.c; CS PB12 is a plain GPIO the model does not need). telemetry_init
+// stops when it cannot mount it, and the board then never runs CAN. run.sh writes an empty 16 MB FAT16 volume to
+// sd.img before each run (make_sd_image.py); the card writes its log blocks back there.
+sd: SD.SDCard @ spi2
+    imageFile: "sim/dashboard/sd.img"
+    capacity: 0x1000000
+    spiMode: true

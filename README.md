@@ -16,11 +16,14 @@ firmware, unmodified apart from one line, on simulated hardware: no boards, no b
 
 The parts around them are Python models in `sim/dashboard/`:
 - **Cells:** the ADBMS1818 cell monitor (`adbms1818.py`).
+- **Pack current:** the ADS122C14 current-sense ADC (`ads122c14.py`).
 - **Motor controller:** the WS22 (`ws22_motor_controller.py`).
 - **Radio:** the XBee link (`xbee_bridge.py`), which can feed Midnight Sun's own telemetry dashboard.
+- **On the boards:** the relay sense lines, the AUX power input, and telemetry's SD card.
 
-The steering display shows the car's live values: pack voltage and current, speed, state of charge
-and cell voltages.
+All of them follow one drive scenario (`sim/dashboard/drive.csv`): park, accelerate to 60 km/h,
+cruise, regen-brake, stop, every 100 s. Speed, pack and motor current, pack and cell voltage, and
+state of charge therefore agree on the steering display.
 
 **Run it** (needs `scons`, the Arm GNU toolchain, and Simantic's `sim` on PATH):
 

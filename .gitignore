@@ -60,3 +60,10 @@ libraries/lvgl9/src/
 # Claude
 CLAUDE.md
 .claude/
+
+# sim/dashboard/run.sh writes these on every run
+sim/dashboard/sd.img
+sim/dashboard/sim.log
+sim/dashboard/peers.log
+sim/dashboard/xbee_pty.txt
+sim/dashboard/steering-frames/
