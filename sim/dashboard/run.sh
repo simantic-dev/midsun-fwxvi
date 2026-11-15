@@ -30,6 +30,9 @@ SIM_PID=$!
 python3 sim/dashboard/display_view.py "$FRAMES" &
 VIEW_PID=$!
 trap 'kill $SIM_PID $VIEW_PID 2>/dev/null' EXIT
+# Open the display in a browser (macOS `open`, Linux `xdg-open`); NO_BROWSER=1 skips it.
+OPENER=$(command -v open || command -v xdg-open || true)
+[ -n "$OPENER" ] && [ -z "${NO_BROWSER:-}" ] && (sleep 2; "$OPENER" http://localhost:8765/) >/dev/null 2>&1 &
 
 if [ -z "${DASH:-}" ]; then
   echo "car running (log: sim/dashboard/sim.log, peers: sim/dashboard/peers.log); Ctrl-C to stop"

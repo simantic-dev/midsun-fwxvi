@@ -1,3 +1,45 @@
+## This fork: the whole car in a simulator
+
+This is Simantic's fork of Midnight Sun's firmware. It runs the car's real
+firmware, unmodified apart from one line, on simulated hardware: no boards, no bench.
+
+![Steering display, simulated](sim/dashboard/screenshots/09-steering-display.png)
+
+**What runs:** four controllers on one simulated CAN bus, each on its own simulated STM32.
+
+| Board | MCU | Firmware |
+| --- | --- | --- |
+| Rear controller (BMS) | STM32L496 | `projects/rear_controller` |
+| Front controller | STM32L433 | `projects/front_controller` |
+| Telemetry | STM32L433 | `projects/telemetry` |
+| Steering, with its LTDC display | STM32L4P5 | `projects/steering` |
+
+The parts around them are Python models in `sim/dashboard/`:
+- **Cells:** the ADBMS1818 cell monitor (`adbms1818.py`).
+- **Motor controller:** the WS22 (`ws22_motor_controller.py`).
+- **Radio:** the XBee link (`xbee_bridge.py`), which can feed Midnight Sun's own telemetry dashboard.
+
+The steering display shows the car's live values: pack voltage and current, speed, state of charge
+and cell voltages.
+
+**Run it** (needs `scons`, the Arm GNU toolchain, and Simantic's `sim` on PATH):
+
+```
+pip install scons -r requirements.txt
+for p in rear_controller front_controller telemetry steering; do scons --platform=arm --project=$p; done
+sim/dashboard/run.sh 600      # opens the steering display at http://localhost:8765/
+```
+
+The one change to the firmware: persistence is off on the steering board
+(`INCLUDE_PERSISTENCE 0` in `projects/steering/src/display.c`). `libraries/ms-common/inc/flash.h`
+gives every chip the STM32L433's flash layout, which doesn't fit the L4P5.
+[`sim/dashboard/README.md`](sim/dashboard/README.md) has the details, the three-board variant and
+how to attach the telemetry dashboard.
+
+Everything below is Midnight Sun's README.
+
+---
+
 <img src=doxygen/banner.png width=90%></br>
 ## Midnight Sun XVI Firmware
 This repository contains all firmware for the [University of Waterloo](https://uwaterloo.ca/)'s [Midnight Sun Solar Rayce Car](http://www.uwmidsun.com/) team's car #24.
