@@ -70,9 +70,12 @@ speed and temperature.
 ```
 git apply sim/dashboard/steering-persistence-off.patch   # see below
 scons --platform=arm --project=steering                   # its own STM32L4P5 preset
-SIM=/path/to/pyrite/sim
-$SIM run --scenario sim/dashboard/car4.yaml --timeout 20 --display-dir steering-frames
+SIM=/path/to/pyrite/sim sim/dashboard/run.sh 600              # add DASH=... for the telemetry dashboard too
 ```
+
+`run.sh` runs all four controllers (`CAR=3` for the three-board car) and serves the steering display at
+http://localhost:8765/ (`display_view.py`, standard library only). On an Apple M5 laptop the car
+runs about 1.9x slower than real time with a current pyrite: 20 virtual seconds in about 37 s.
 
 `--display-dir` writes one PNG each time the screen's content changes. The pixel clock is taken from
 the firmware's own PLLSAI2 setup (HSI16 / 4 x 72 / 8 / 4 = 9 MHz), so frames come at the panel's
