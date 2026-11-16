@@ -17,6 +17,74 @@ the pack sagging to 141 V at 19.5 A of discharge, cells at 3.920 V and 4.003 V.
 | Telemetry | STM32L433 | `projects/telemetry` |
 | Steering, with its LTDC display | STM32L4P5 | `projects/steering` |
 
+**The scenario**, as `sim graph --scenario sim/dashboard/car4.yaml` prints it. Square boxes are the
+simulated MCUs running the firmware, rounded boxes are the modelled parts around them, and the hexagons
+are the shared CAN bus and the radio UART:
+
+```mermaid
+flowchart LR
+  bms["bms<br/>STM32L496RG"]
+  bms_adbms(["adbms<br/>SPI.ScriptedSpiSlave"])
+  bms -- "spi2" --- bms_adbms
+  bms_ads122(["ads122<br/>I2C.ScriptedI2cSlave"])
+  bms -- "i2c3 0x40" --- bms_ads122
+  bms_aux_v(["aux_v<br/>Analog.ADCChannelSource"])
+  bms -- "adc1 0x6" --- bms_aux_v
+  bms_aux_i(["aux_i<br/>Analog.ADCChannelSource"])
+  bms -- "adc1 0x3" --- bms_aux_i
+  bms_pcs_v(["pcs_v<br/>Analog.ADCChannelSource"])
+  bms -- "adc1 0x7" --- bms_pcs_v
+  bms_pcs_i(["pcs_i<br/>Analog.ADCChannelSource"])
+  bms -- "adc1 0x4" --- bms_pcs_i
+  front["front<br/>STM32L433CC"]
+  front_brake(["brake<br/>Analog.ADCChannelSource"])
+  front -- "adc1 0xa" --- front_brake
+  front_accel(["accel<br/>Analog.ADCChannelSource"])
+  front -- "adc1 0x8" --- front_accel
+  front_ws22(["ws22<br/>CAN.ScriptedCanNode"])
+  telemetry["telemetry<br/>STM32L433CC"]
+  telemetry_xbee(["xbee<br/>UART.ScriptedUartPeer"])
+  telemetry_sd(["sd<br/>SD.SDCard"])
+  telemetry -- "spi2" --- telemetry_sd
+  steering["steering<br/>STM32L4P5VE"]
+  medium0{{"can"}}
+  bms -- "can1" --- medium0
+  front -- "can1" --- medium0
+  front_ws22 --- medium0
+  telemetry -- "can1" --- medium0
+  steering -- "can1" --- medium0
+  medium1{{"uart"}}
+  telemetry -- "usart2" --- medium1
+  telemetry_xbee --- medium1
+```
+
+**Configurations tried:**
+
+| Configuration | Where | Firmware | Result |
+| --- | --- | --- | --- |
+| BMS alone, 2 x ADBMS1818 and a steering stand-in | `sim/scenario.yaml` | `rear_controller` | runs |
+| Three boards on one CAN bus | `sim/car.yaml` | `rear_controller`, `front_controller`, `telemetry` | runs |
+| Three boards with the drive scenario and dashboard | `sim/dashboard/car_dashboard.yaml` | same, steering stand-in | runs |
+| Four boards with the drive scenario (the graph above) | `sim/dashboard/car4.yaml` | all four | runs |
+| One real board against the simulator | NUCLEO-L433RC-P, branch `bench/nucleo-l433rc-p` | `blinky`, `front_controller`, `telemetry` | same tick on both, see below |
+
+The four simulated configurations were last run for 10 virtual seconds each, with no faults, on a
+build of Simantic's `sim` from 2026-11-15.
+
+**Checked against a real STM32L433** (NUCLEO-L433RC-P over SWD): the board and the simulator are stopped
+at the same points in the firmware and compared.
+
+| Check | Board | Simulator |
+| --- | --- | --- |
+| `blinky`: tick at the 3rd LED toggle | 1001 | 1001 |
+| `front_controller`: tick at the 3rd 1 Hz cycle | 2001 | 2001 |
+| `front_controller`: 3-channel ADC with DMA, start to complete (core cycles) | 10,358 to 10,361 | 10,310 to 10,312 |
+| `telemetry`: tick at the 3rd 1 Hz cycle, blank flash | 2001 | 2000 |
+
+The bench branch moves four pins off PA5 to PA7 and puts CAN in loopback. On that Nucleo PA4 to PA7 control
+its on-board regulator, and it has no CAN transceiver. The stock pin map stops the board in its first
+1 Hz cycle, so do not flash the stock `front_controller` or `telemetry` on a NUCLEO-L433RC-P.
+
 The parts around them are Python models in `sim/dashboard/`:
 - **Cells:** the ADBMS1818 cell monitor (`adbms1818.py`).
 - **Pack current:** the ADS122C14 current-sense ADC (`ads122c14.py`).
