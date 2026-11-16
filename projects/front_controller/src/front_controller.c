@@ -52,7 +52,7 @@ static const CanSettings s_can_settings = {
   .bitrate = CAN_HW_BITRATE_500KBPS,
   .tx = GPIO_FRONT_CONTROLLER_CAN_TX,
   .rx = GPIO_FRONT_CONTROLLER_CAN_RX,
-  .loopback = false,
+  .loopback = true, /* bench: no transceiver on the Nucleo */
   .can_rx_all_cb = motor_can_process_rx,
 };
 

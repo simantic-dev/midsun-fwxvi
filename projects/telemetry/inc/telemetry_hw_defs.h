@@ -48,7 +48,7 @@
 #define GPIO_TELEMETRY_UART_TX TELEMETRY_GPIO_DEF(A, 2)
 
 /** @brief  Telemetry XBee XRST Pin */
-#define GPIO_TELEMETRY_XBEE_XRST TELEMETRY_GPIO_DEF(A, 5)
+#define GPIO_TELEMETRY_XBEE_XRST TELEMETRY_GPIO_DEF(C, 5)
 
 /** @brief  Telemetry XBee SLEEP_RQ Pin */
 #define GPIO_TELEMETRY_XBEE_SLEEP_RQ TELEMETRY_GPIO_DEF(A, 11)
@@ -103,7 +103,7 @@
  ************************************************************************************************/
 
 /** @brief  Telemetry board LED */
-#define GPIO_TELEMETRY_BOARD_LED TELEMETRY_GPIO_DEF(A, 6)
+#define GPIO_TELEMETRY_BOARD_LED TELEMETRY_GPIO_DEF(C, 6)
 
 /** @} */
 

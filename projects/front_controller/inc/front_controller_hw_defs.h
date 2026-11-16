@@ -76,10 +76,10 @@
  ************************************************************************************************/
 
 /** @brief  Front Controller current sense mux select 0 */
-#define GPIO_FRONT_CONTROLLER_MUX_SEL_2 FRONT_CONTROLLER_GPIO_DEF(A, 6)
+#define GPIO_FRONT_CONTROLLER_MUX_SEL_2 FRONT_CONTROLLER_GPIO_DEF(C, 6)
 
 /** @brief  Front Controller current sense mux select 1 */
-#define GPIO_FRONT_CONTROLLER_MUX_SEL_3 FRONT_CONTROLLER_GPIO_DEF(A, 7)
+#define GPIO_FRONT_CONTROLLER_MUX_SEL_3 FRONT_CONTROLLER_GPIO_DEF(C, 7)
 
 /** @brief  Front Controller current sense mux select 2 */
 #define GPIO_FRONT_CONTROLLER_MUX_SEL_0 FRONT_CONTROLLER_GPIO_DEF(B, 1)

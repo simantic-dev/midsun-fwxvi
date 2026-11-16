@@ -51,7 +51,7 @@ static const CanSettings s_can_settings = {
   .bitrate = CAN_HW_BITRATE_500KBPS,
   .tx = GPIO_TELEMETRY_CAN_TX,
   .rx = GPIO_TELEMETRY_CAN_RX,
-  .loopback = false,
+  .loopback = true, /* bench: no transceiver on the Nucleo */
   .can_rx_all_cb = s_receive_can,
 };
 
