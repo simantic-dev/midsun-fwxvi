@@ -1,3 +1,19 @@
+## Watch the BMS balance cells in a simulator
+
+```sh
+git clone https://github.com/simantic-dev/midsun-fwxvi && cd midsun-fwxvi && ./demo
+```
+
+You need `scons` (`pip install scons`), the Arm GNU toolchain, and `sim` on your `PATH` (or `SIM=/path/to/sim`):
+
+```sh
+curl -fsSL https://simantic.com/install | sh
+```
+
+![rear controller balancing a simulated pack](media/bms-balancing.gif)
+
+The unedited `rear_controller` firmware, built for its STM32L496 preset, runs on pyrite, the Simantic simulator. Two simulated ADBMS1818 cell monitors on SPI report 36 cells; cells 3 and 10 start high, and the firmware turns discharge on and off for them as the imbalance shrinks. The steering peer is a Python script that enables balancing over CAN. The cell monitors, cell voltages and steering node are Python models at transaction level, not electrical simulations, and the timing is not measured against hardware. Pyrite is a proprietary simulator, not open source. `sim/run.sh` is the same run with its own filter.
+
 ## This fork: the whole car in a simulator
 
 This is Simantic's fork of Midnight Sun's firmware. It runs the car's real
