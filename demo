@@ -1,4 +1,30 @@
 #!/bin/sh
-# Balances a simulated 36-cell pack with the real rear_controller (BMS) firmware. Usage: ./demo [virtual-seconds]
-# Builds the firmware with scons (first run only, into .venv/ and build/) and needs `sim` on PATH or SIM=/path/to/sim.
-cd "$(dirname "$0")" && exec sim/run.sh "${1:-120}"
+# Balances a simulated 36-cell pack with the real rear_controller (BMS) firmware.
+# ./demo build      build the firmware first (scons, into .venv/ and build/; needs the Arm GNU toolchain)
+# ./demo [seconds]  run it (default 120 virtual s; needs `sim` on PATH or SIM=/path/to/sim)
+set -eu
+cd "$(dirname "$0")"
+if [ "${1:-}" = build ]; then exec sim/run.sh build; fi
+SIM="${SIM:-sim}"
+command -v "$SIM" >/dev/null || { echo "sim not found. Install it: curl -fsSL https://simantic.com/install | sh" >&2; exit 1; }
+[ -f build/arm/bin/projects/rear_controller.elf ] || { echo "not built yet: ./demo build" >&2; exit 1; }
+# Every number below is printed by sim/adbms1818.py: the cell voltages it returned to the firmware over SPI and the
+# discharge (DCC) bits the firmware wrote back.
+"$SIM" run --scenario sim/scenario.yaml --timeout "${1:-120}" --ascii 2>&1 | awk -v secs="${1:-120}" '
+  /steering: / { print "   0.0s  steering peer -> CAN 0x64: balancing_enabled=1"; fflush() }
+  / balance O/ {                                   # one line per DCC bit the firmware flips: keep first and last voltage
+    c = $3 "/" $4; v = substr($NF, 2, 5)
+    if (!(c in first)) { first[c] = v; order[++nc] = c }
+    last[c] = v
+  }
+  / pack min / {
+    t = substr($3, 3) + 0; lo = $6 * 1000; hi = $8 * 1000; d = $10
+    sub(/.*summary: /, ""); if (!n++) { d0 = d; $0 = "none yet (first reading)" }
+    printf "%6.1fs  cells %d to %d mV, spread %2d mV | firmware discharged: %s\n", t, lo, hi, d, $0; fflush()
+  }
+  END {
+    if (!n) { print "no cell readings seen: sim/run.sh shows the less filtered log"; exit 1 }
+    printf "done: %s virtual s, spread %d -> %d mV", secs, d0, d   # keep under 120 columns for the GIF
+    for (i = 1; i <= nc; i++) { c = order[i]; printf " | %s %s -> %s V", c, first[c], last[c] }
+    print ""
+  }'
