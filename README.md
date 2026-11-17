@@ -1,18 +1,34 @@
 ## Watch the BMS balance cells in a simulator
 
 ```sh
-git clone https://github.com/simantic-dev/midsun-fwxvi && cd midsun-fwxvi && ./demo
+./demo build    # once: builds rear_controller with scons
+./demo          # runs it on the simulated STM32L496 with the cell monitors and steering node
 ```
 
-You need `scons` (`pip install scons`), the Arm GNU toolchain, and `sim` on your `PATH` (or `SIM=/path/to/sim`):
+![rear controller balancing a simulated pack](media/bms-demo.gif)
+
+```mermaid
+flowchart LR
+  bms["STM32L496RG<br/>rear_controller (unmodified)"]
+  adbms(["2x ADBMS1818 daisy chain<br/>adbms1818.py, 36 cells"]) -- "SPI2 CS PB12: cell voltages (RDCV), DCC discharge bits (WRCFG)" --- bms
+  steering(["Steering node<br/>steering_peer.py"]) -- "CAN1: steering 0x64, balancing_enabled" --- bms
+```
+
+The unedited `rear_controller` firmware, built for its STM32L496 preset, runs on pyrite, the Simantic simulator.
+Two simulated ADBMS1818 cell monitors on SPI report 36 cells; cells 3 and 10 start high. The summary lines are decoded
+from the readings the firmware pulls over SPI and the discharge bits it writes, so the numbers are what the bus carried.
+Cell monitors, cell voltages and the steering node are Python models at transaction level, not electrical simulations,
+and the timing is not measured against hardware. Pyrite is a proprietary simulator, not open source.
+
+Needs `scons` (`pip install scons`), the Arm GNU toolchain, and `sim` 0.10.0 or newer on `PATH` (or `SIM=/path/to/sim`):
 
 ```sh
 curl -fsSL https://simantic.com/install | sh
 ```
 
-![rear controller balancing a simulated pack](media/bms-balancing.gif)
-
-The unedited `rear_controller` firmware, built for its STM32L496 preset, runs on pyrite, the Simantic simulator. Two simulated ADBMS1818 cell monitors on SPI report 36 cells; cells 3 and 10 start high, and the firmware turns discharge on and off for them as the imbalance shrinks. The steering peer is a Python script that enables balancing over CAN. The cell monitors, cell voltages and steering node are Python models at transaction level, not electrical simulations, and the timing is not measured against hardware. Pyrite is a proprietary simulator, not open source. `sim/run.sh` is the same run with its own filter.
+Known gap: this preset is a release build, so the firmware's own `MAX VOLTAGE` debug log is compiled out; the
+summary lines come from the ADBMS bus instead. `balancing:` lists the cells whose discharge (DCC) bits the firmware
+set since the previous line. The firmware stops each cell inside its own 10 mV deadband.
 
 ## This fork: the whole car in a simulator
 

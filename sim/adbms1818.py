@@ -16,7 +16,7 @@
 #                      (defaults: dev0 cell3 3.95 V, dev1 cell10 3.98 V, so balancing triggers)
 #   aux_v              GPIO/thermistor input voltage in volts, default 1.5
 #   discharge_mv_per_s drop rate of a discharging cell, default 1.0 mV/s (below the firmware's 10 mV deadband per 4.4 s window)
-#   summary_every      print a pack summary every N ADCV conversions, default 10
+#   summary_every      print a pack summary every N ADCV conversions, default 2
 #
 # Protocol: the driver's framing (ms-drivers adbms_afe.c, adbms_afe_crc15.c)
 # and CRC15 (seed 16, result shifted left one bit). The ADBMS1818 datasheet is
@@ -118,7 +118,8 @@ class Slave:
         self.num_devices = int(cfg.get("num_devices", 2))
         self.aux_v = float(cfg.get("aux_v", 1.5))
         self.rate_v_per_s = float(cfg.get("discharge_mv_per_s", 1.0)) / 1000.0
-        self.summary_every = int(cfg.get("summary_every", 10))
+        self.summary_every = int(cfg.get("summary_every", 2))
+        self.bal_seen = set()  # cells discharged since the last summary (log only)
         cell_v = float(cfg.get("cell_v", 3.90))
         self.volts = [[cell_v] * CELLS_PER_DEVICE for _ in range(self.num_devices)]
         overrides = {"0:3": 3.95, "1:10": 3.98}
@@ -271,13 +272,16 @@ class Slave:
             for cell in range(CELLS_PER_DEVICE):
                 if mask & (1 << cell):
                     self.volts[dev][cell] = max(0.0, self.volts[dev][cell] - drop)
+                    self.bal_seen.add((dev, cell))
 
     def _conversion(self):
         self.conversions += 1
         if self.summary_every > 0 and self.conversions % self.summary_every == 0:
             flat = [v for dev in self.volts for v in dev]
             lo, hi = min(flat), max(flat)
+            bal = [f"dev{d}:c{c}={self.volts[d][c]:.3f}V" for d, c in sorted(self.bal_seen)]
+            self.bal_seen.clear()
             self.ctx.info(
                 f"adbms1818: pack min {lo:.3f}V max {hi:.3f}V delta {round((hi - lo) * 1000)} mV "
-                f"(after {self.conversions} conversions)"
+                f"(after {self.conversions} conversions) balancing: {' '.join(bal) or 'none'}"
             )
