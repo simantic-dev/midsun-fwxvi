@@ -1,3 +1,5 @@
+> **[Simantic](https://simantic.com)** runs this firmware on simulated hardware, no board needed. Try it at [simantic.com](https://simantic.com).
+
 ## This fork: the whole car in a simulator
 
 This is Simantic's fork of Midnight Sun's firmware. It runs the car's real
