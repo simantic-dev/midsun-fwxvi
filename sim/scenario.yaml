@@ -2,7 +2,7 @@ machines:
   bms:
     mcu: STM32L496RG
     overlay: bms.board
-    elf: ../build/arm/bin/projects/rear_controller.elf
+    elf: fw/rear_controller.elf
 media:
   - type: can
     connect: [bms.can1, bms.steering]
